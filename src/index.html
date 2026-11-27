@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>القرآن الكريم</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body class="spread">
+  <main id="reader" class="reader">
+    <div id="pages" class="pages"></div>
+    <button class="turn next" data-turn="1" title="الصفحة التالية (←)" aria-label="الصفحة التالية"></button>
+    <button class="turn prev" data-turn="-1" title="الصفحة السابقة (→)" aria-label="الصفحة السابقة"></button>
+  </main>
+
+  <header id="topbar" class="topbar">
+    <span class="start"><span id="bar-sura"></span><button id="mark-btn" class="bar-pill" data-act="go-mark" data-tone="rose" data-icon="markGo">العلامة</button></span>
+    <span id="bar-page" class="mid"></span>
+    <span class="end"><span id="bar-juz"></span><button id="zoom-btn" class="bar-btn" data-act="zoom"></button><button id="fs-btn" class="bar-btn" data-act="fullscreen"></button></span>
+  </header>
+
+  <nav id="menu" class="menu" aria-label="القائمة">
+    <button class="t" data-act="search" title="بحث (Ctrl+F)" data-tone="blue" data-icon="search">البحث</button>
+    <button class="t" data-act="save-mark" data-tone="orange" data-icon="mark">حفظ علامة</button>
+    <button class="t" data-act="light" title="السطوع والوضع الليلي" data-tone="amber" data-icon="sun">الإضاءة</button>
+    <button class="t" data-act="index" data-tone="teal" data-icon="list">الفهرس</button>
+    <button class="t" data-act="juz" data-tone="purple" data-icon="pie">الأجزاء</button>
+    <button class="t" data-act="goto" data-tone="sky" data-icon="pages">الصفحات</button>
+    <button class="t" data-act="share" data-tone="green" data-icon="share">مشاركة</button>
+    <button class="t" data-act="mode" data-tone="indigo" data-icon="book" id="mode-btn">صفحة واحدة</button>
+    <button class="t" data-act="more" data-tone="slate" data-icon="dots">المزيد</button>
+  </nav>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <div id="ayah-menu" class="ayah-menu" role="menu" hidden>
+    <span id="ayah-menu-ref" class="ref"></span>
+    <button role="menuitem" data-act="copy-ayah" data-tone="sky" data-icon="copy">نسخ الآية</button>
+    <button role="menuitem" data-act="tafsir-ayah" data-tone="emerald" data-icon="book">تفسير الآية</button>
+  </div>
+
+  <section id="list-view" class="list-view" hidden>
+    <header class="list-head">
+      <button class="back" data-act="close" data-icon="back">رجوع</button>
+      <span class="head-center">
+        <span class="tabs">
+          <i class="tab-pill" aria-hidden="true"></i>
+          <button data-act="index" data-tone="teal" data-icon="list">الفهرس</button>
+          <button data-act="juz" data-tone="purple" data-icon="pie">الأجزاء</button>
+        </span>
+        <button id="list-mark" class="head-mark" data-act="go-mark" data-tone="rose" data-icon="markGo">العلامة</button>
+      </span>
+      <span></span>
+    </header>
+    <div class="list-scroll"><div id="list" class="list"></div></div>
+  </section>
+
+  <div id="goto" class="dialog" hidden>
+    <form id="goto-form">
+      <label for="goto-input">انتقال إلى الصفحة</label>
+      <input id="goto-input" type="text" inputmode="numeric" maxlength="3" autocomplete="off" spellcheck="false" aria-describedby="goto-hint">
+      <small id="goto-hint" class="hint">رقم من 1 إلى 604</small>
+      <div class="row"><button type="submit" class="primary" id="goto-ok">انتقال</button><button type="button" data-act="close">إلغاء</button></div>
+    </form>
+  </div>
+
+  <aside id="panel" class="panel" hidden>
+    <header class="panel-head">
+      <span id="panel-title"></span>
+      <button data-act="close" title="إغلاق (Esc)" aria-label="إغلاق">✕</button>
+    </header>
+    <form id="search-form" class="search-box" hidden>
+      <input id="search-input" type="search" placeholder="اكتب كلمة أو جزءاً من آية…" autocomplete="off">
+    </form>
+    <div id="panel-note" class="panel-note"></div>
+    <div id="panel-body" class="panel-body"></div>
+  </aside>
+
+  <div id="more" class="dialog" hidden>
+    <div class="form sheet">
+      <h3 class="sheet-title">المزيد</h3>
+      <div class="tiles">
+        <button type="button" class="tile" data-act="tafsir" data-tone="emerald" data-icon="book"><span>التفسير الميسر</span></button>
+        <button type="button" class="tile" data-act="tajweed" data-tone="pink" data-icon="scroll"><span>ملخص التجويد</span></button>
+        <button type="button" class="tile" id="zoom-tile" data-act="zoom" data-tone="cyan" data-icon="zoomIn"><span>تكبير للقراءة</span><small>الصفحة بعرض الشاشة</small></button>
+        <button type="button" class="tile" id="fs-tile" data-act="fullscreen" data-tone="violet" data-icon="expand"><span>ملء الشاشة</span><small>F11</small></button>
+        <button type="button" class="tile" data-act="help" data-tone="teal" data-icon="help"><span>طريقة الاستخدام</span><small>الاختصارات والنسخ</small></button>
+        <button type="button" class="tile" data-act="about" data-tone="slate" data-icon="info"><span>حول البرنامج</span></button>
+      </div>
+      <label class="toggle"><span>إبقاء الشاشة مضاءة أثناء القراءة</span><input id="awake-input" type="checkbox" role="switch"><i></i></label>
+      <div class="row"><button type="button" data-act="close">إغلاق</button></div>
+    </div>
+  </div>
+
+  <!-- first-run guide (also in More → طريقة الاستخدام) -->
+  <div id="welcome" class="dialog" hidden>
+    <div class="form sheet welcome">
+      <img class="logo" src="img/logo.png" alt="" width="72" height="72">
+      <h3 class="sheet-title">أهلاً بك في القرآن الكريم</h3>
+      <p class="welcome-sub">إرشادات سريعة لتبدأ القراءة</p>
+      <ul class="tips">
+        <li><span data-tone="sky" data-icon="left"></span><div><b>التنقل بين الصفحات</b>الأسهم على جانبي الصفحة، أو مفتاحا <span class="keys" dir="ltr"><kbd>←</kbd> <kbd>→</kbd></span>، أو عجلة الفأرة.</div></li>
+        <li><span data-tone="teal" data-icon="list"></span><div><b>الفهرس والأجزاء</b>من القائمة السفلية. اضغط اسم السورة أو الجزء لتنتقل إليه.</div></li>
+        <li><span data-tone="blue" data-icon="copy"></span><div><b>نسخ آية</b>انقر على الآية مرتين أو بزر الفأرة الأيمن، ثم «نسخ الآية» أو <span class="keys" dir="ltr"><kbd>Ctrl</kbd>+<kbd>C</kbd></span>.</div></li>
+        <li><span data-tone="green" data-icon="share"></span><div><b>نسخ صفحة كاملة</b>زر «مشاركة» ينسخ كل آيات الصفحة.</div></li>
+        <li><span data-tone="indigo" data-icon="search"></span><div><b>البحث</b><span class="keys" dir="ltr"><kbd>Ctrl</kbd>+<kbd>F</kbd></span> أو زر البحث، ثم اضغط النتيجة لتنتقل إلى الآية.</div></li>
+        <li><span data-tone="orange" data-icon="mark"></span><div><b>العلامة</b>«حفظ علامة» يحفظ مكانك، وزر «العلامة» في الأعلى يعيدك إليه.</div></li>
+        <li><span data-tone="violet" data-icon="expand"></span><div><b>العرض</b><span class="keys" dir="ltr"><kbd>F11</kbd></span> لملء الشاشة، والنقر على الصفحة يُخفي الأشرطة ويُظهرها.</div></li>
+      </ul>
+      <p class="welcome-note">تجد هذه الإرشادات دائماً في «المزيد ← طريقة الاستخدام».</p>
+      <div class="row"><button type="button" class="primary" data-act="close">ابدأ القراءة</button></div>
+    </div>
+  </div>
+
+  <section id="doc-view" class="list-view doc-view" hidden>
+    <header class="list-head">
+      <button class="back" data-act="close" data-icon="back">رجوع</button>
+      <span class="doc-title">ملخص أحكام التجويد</span>
+      <button class="save-btn" id="doc-save" data-act="save-tajweed" data-icon="download">حفظ نسخة PDF</button>
+    </header>
+    <div class="doc-frame">
+      <iframe id="doc-frame" title="ملخص أحكام التجويد" hidden></iframe>
+      <div id="doc-missing" class="doc-missing" hidden>
+        <span data-icon="scroll"></span>
+        <p>ملخص التجويد لم يُضف بعد.<br>سيظهر هنا عند إضافته إلى البرنامج.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="about" class="dialog" hidden>
+    <div class="form about">
+      <img class="logo" src="img/logo.png" alt="" width="96" height="96">
+      <h2>القرآن الكريم</h2>
+      <p>المصحف الشامي بخط عثمان طه، يعمل بدون إنترنت.</p>
+      <p class="tip">لنسخ آية واحدة أو قراءة تفسيرها: انقر عليها بزر الفأرة الأيمن (أو انقر مرتين).</p>
+      <ul>
+        <li>صفحات المصحف: ملف «Quran with Allah's Name in Red» من أرشيف الإنترنت (islamic1articles.home.blog).</li>
+        <li>بيانات السور والأجزاء والأحزاب: Tanzil.net (CC BY 3.0).</li>
+        <li>نص الآيات للبحث، والتفسير الميسر (مجمع الملك فهد): عبر Quran.com.</li>
+        <li>الخطوط: Amiri (OFL)، وخط أسماء السور من Quran.com.</li>
+      </ul>
+      <div class="row"><button type="button" data-act="close">إغلاق</button></div>
+    </div>
+  </div>
+
+  <div id="light" class="dialog" hidden>
+    <div class="form sheet">
+      <h3 class="sheet-title">الإضاءة</h3>
+      <label class="toggle"><span>الوضع الليلي</span><input id="night-input" type="checkbox" role="switch"><i></i></label>
+      <label for="bright-input">السطوع</label>
+      <div class="bright-row">
+        <span class="dim" data-icon="sun"></span>
+        <input id="bright-input" class="glass-range" type="range" min="40" max="100" step="5">
+        <span class="full" data-icon="sun"></span>
+      </div>
+      <div class="row"><button type="button" data-act="close">تم</button></div>
+    </div>
+  </div>
+
+  <script src="js/meta.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

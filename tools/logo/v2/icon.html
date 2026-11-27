@@ -1,0 +1,110 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:transparent}svg{display:block}</style></head><body>
+<script>
+// App icon: the original «القرآن الكريم» calligraphy (callig.png, extracted mask) set in a
+// rub-el-hizb star medallion on a lapis tile — colours taken from the Shami mushaf's illumination.
+const q = new URLSearchParams(location.search);
+const V = q.get('v') || 'a';          // a: gold on lapis · b: ink on cream page · c: gold on emerald
+const S = +(q.get('s') || 1024);      // output pixel size
+const SMALL = q.get('small') === '1'; // simplified artwork for tiny sizes
+const MASK = q.get('mask') || 'callig.png';
+
+const pal = {
+  a: { t0:'#3166cf', t1:'#17409a', t2:'#0a1d50', in0:'#2052b8', in1:'#0d2a70', in2:'#07163d', pat:'#a9c6ff', glow:'#3d7bea' },
+  b: { t0:'#3166cf', t1:'#17409a', t2:'#0a1d50', in0:'#fffef6', in1:'#fff8e1', in2:'#f0deb0', pat:'#a9c6ff', glow:'#ffffff' },
+  c: { t0:'#1f9270', t1:'#0d5f47', t2:'#052e23', in0:'#14795f', in1:'#084235', in2:'#04241d', pat:'#a9f3d6', glow:'#2fb58c' },
+}[V];
+const ink = V === 'b';
+
+const C = 512, K = Math.cos(Math.PI/4) / Math.cos(Math.PI/8);
+function star(R, cx = C, cy = C) {    // rub-el-hizb outline: 16 vertices
+  const p = [];
+  for (let i = 0; i < 16; i++) {
+    const a = i * Math.PI/8, rr = i % 2 ? R * K : R;
+    p.push((cx + rr*Math.cos(a)).toFixed(2) + ',' + (cy + rr*Math.sin(a)).toFixed(2));
+  }
+  return p.join(' ');
+}
+
+// faint 8-fold lattice on the tile
+let lattice = '';
+const step = 121;
+for (let y = 28 - step; y <= 1024 + step; y += step)
+  for (let x = 28 - step; x <= 1024 + step; x += step) {
+    lattice += `<polygon points="${star(44, x, y)}"/>`;
+    const m = step / 2, d = 31;
+    lattice += `<path d="M${x+44},${y} L${x+step-44},${y} M${x},${y+44} L${x},${y+step-44} M${x+d},${y+d} L${x+m},${y+m} L${x+step-d},${y+step-d} M${x+step-d},${y+d} L${x+m},${y+m} L${x+d},${y+step-d}"/>`;
+  }
+
+const R    = SMALL ? 446 : 432;            // star outer radius
+const RIM  = SMALL ? 40 : 18;              // gold rim width
+const rIn  = (R - RIM) * K;                // inner vertex radius of the fill
+const ringR = rIn - 7;                     // thin ring that hugs the calligraphy
+const calR  = SMALL ? rIn - 6 : ringR - 3; // calligraphy radius (source radius = 326)
+const sc = calR / 326;
+
+let beads = '';
+if (!SMALL) for (let i = 0; i < 8; i++) {
+  const a = Math.PI/8 + i*Math.PI/4, d = R * K + 56;
+  beads += `<circle cx="${(C+d*Math.cos(a)).toFixed(1)}" cy="${(C+d*Math.sin(a)).toFixed(1)}" r="10.5"/>`;
+}
+
+document.body.innerHTML = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="${S}" height="${S}">
+  <defs>
+    <radialGradient id="tile" cx="50%" cy="32%" r="82%">
+      <stop offset="0" stop-color="${pal.t0}"/><stop offset=".5" stop-color="${pal.t1}"/><stop offset="1" stop-color="${pal.t2}"/>
+    </radialGradient>
+    <radialGradient id="inner" cx="50%" cy="46%" r="60%">
+      <stop offset="0" stop-color="${pal.in0}"/><stop offset=".62" stop-color="${pal.in1}"/><stop offset="1" stop-color="${pal.in2}"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff6cf"/><stop offset=".25" stop-color="#f3cf6e"/><stop offset=".52" stop-color="#b9801f"/>
+      <stop offset=".78" stop-color="#f6d680"/><stop offset="1" stop-color="#c08a26"/>
+    </linearGradient>
+    <linearGradient id="goldInk" gradientUnits="userSpaceOnUse" x1="0" y1="${C-calR}" x2="0" y2="${C+calR}">
+      <stop offset="0" stop-color="#fffce8"/><stop offset=".45" stop-color="#fbe08e"/><stop offset="1" stop-color="#e2a83c"/>
+    </linearGradient>
+    <linearGradient id="navyInk" gradientUnits="userSpaceOnUse" x1="0" y1="${C-calR}" x2="0" y2="${C+calR}">
+      <stop offset="0" stop-color="#15307a"/><stop offset="1" stop-color="#081539"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".2"/><stop offset=".42" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="9" stdDeviation="11" flood-color="#000" flood-opacity=".45"/></filter>
+    <filter id="shT" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".55"/></filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="62"/></filter>
+    <clipPath id="tileClip"><rect x="28" y="28" width="968" height="968" rx="214"/></clipPath>
+    <clipPath id="starClip"><polygon points="${star(R - RIM)}"/></clipPath>
+    <mask id="callig" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <image href="${MASK}" width="1024" height="1024" preserveAspectRatio="none"
+             transform="translate(${C} ${C}) scale(${sc}) translate(-513 -511.5)"/>
+    </mask>
+  </defs>
+
+  <rect x="28" y="28" width="968" height="968" rx="214" fill="url(#tile)"/>
+  <g clip-path="url(#tileClip)">
+    ${SMALL ? '' : `<g fill="none" stroke="${pal.pat}" stroke-width="2.4" opacity=".13">${lattice}</g>`}
+    <rect x="28" y="28" width="968" height="968" fill="url(#sheen)"/>
+  </g>
+  <rect x="${SMALL?46:48}" y="${SMALL?46:48}" width="${SMALL?932:928}" height="${SMALL?932:928}" rx="${SMALL?198:196}"
+        fill="none" stroke="url(#gold)" stroke-width="${SMALL?34:12}"/>
+
+  <g filter="url(#sh)">
+    <polygon points="${star(R)}" fill="url(#gold)" stroke="url(#gold)" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+  <polygon points="${star(R - RIM)}" fill="url(#inner)"/>
+  ${SMALL ? '' : `
+  <g clip-path="url(#starClip)">
+    <circle cx="512" cy="500" r="215" fill="${pal.glow}" opacity="${ink ? .75 : .5}" filter="url(#glow)"/>
+  </g>
+  <circle cx="512" cy="512" r="${ringR}" fill="none" stroke="${ink ? '#b9801f' : 'url(#gold)'}" stroke-width="4" opacity="${ink ? .8 : .9}"/>
+  <g fill="url(#gold)">${beads}</g>`}
+
+  <g ${ink ? '' : 'filter="url(#shT)"'}>
+    <rect x="0" y="0" width="1024" height="1024" fill="${ink ? 'url(#navyInk)' : 'url(#goldInk)'}" mask="url(#callig)"/>
+  </g>
+</svg>`;
+</script>
+</body></html>

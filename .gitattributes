@@ -1,0 +1,11 @@
+# Text files keep LF in the repository; Windows checkouts get CRLF as usual.
+* text=auto
+
+# Binary files: never touch line endings or try to diff them.
+*.jpg   binary
+*.jpeg  binary
+*.png   binary
+*.ico   binary
+*.icns  binary
+*.pdf   binary
+*.woff2 binary

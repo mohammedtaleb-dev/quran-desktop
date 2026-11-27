@@ -1,0 +1,29 @@
+# Build output and tools (recreated by `npm install` and `npx tauri build`)
+node_modules/
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# Installers (97 MB each): publish them in GitHub Releases, not in the code
+ملفات التثبيت/
+
+# Original mushaf PDF: 107 MB, over GitHub's 100 MB file limit (pages are extracted with `npm run pages`)
+source/*.pdf
+
+# Reference screenshots kept locally only
+WhatsApp Image *.jpeg
+tools/logo/reference.png
+tools/logo/logo.render.html
+tools/make-logo.js
+
+# Duplicate of src-tauri/docs/tajweed.pdf
+ملخص*التجويد*.pdf
+
+# Logs and local tooling
+*.log
+.claude/
+
+# Personal local notes and scratch output
+overlay/
+
+# Personal project guide (local notes)
+دليل المشروع.txt

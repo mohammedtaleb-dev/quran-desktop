@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style></head><body>
+<script>
+// Pull the calligraphy out of the existing icon as a clean white-on-black mask.
+const q = new URLSearchParams(location.search);
+const SRC = q.get('src') || 'file:///C:/Users/GB/Desktop/24/src-tauri/app-icon.png';
+const K   = +(q.get('k') || 3);            // working upscale
+const OUT = +(q.get('out') || 1024);       // output size
+const lo = +(q.get('lo') || 150), hi = +(q.get('hi') || 200);
+const cx = +(q.get('cx') || 512), cy = +(q.get('cy') || 512), rad = +(q.get('r') || 330);
+const blur = +(q.get('blur') || 5), edge = +(q.get('edge') || 0.10), level = +(q.get('level') || 0.5);
+const chan = q.get('ch') || 'g';
+const raw = q.get('raw') === '1';
+const ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+const img = new Image();
+img.onload = () => {
+  const W = img.width * K;
+  const c1 = document.createElement('canvas'); c1.width = c1.height = W;
+  const g1 = c1.getContext('2d', { willReadFrequently: true });
+  g1.imageSmoothingQuality = 'high';
+  g1.drawImage(img, 0, 0, W, W);
+  const d = g1.getImageData(0, 0, W, W), p = d.data;
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4, R = p[i], G = p[i + 1], B = p[i + 2];
+    const v0 = chan === 'r' ? R : chan === 'b' ? B : chan === 'min' ? Math.min(R, G, B) : chan === 'l' ? (0.3 * R + 0.59 * G + 0.11 * B) : G;
+    let v = ss(lo, hi, v0);
+    const dist = Math.hypot(x / K - cx, y / K - cy);
+    v *= 1 - ss(rad - 1.5, rad + 1.5, dist);
+    const o = Math.round(v * 255);
+    p[i] = p[i + 1] = p[i + 2] = o; p[i + 3] = 255;
+  }
+  g1.putImageData(d, 0, 0);
+
+  let fin = c1;
+  if (!raw) {
+    const c2 = document.createElement('canvas'); c2.width = c2.height = W;
+    const g2 = c2.getContext('2d', { willReadFrequently: true });
+    g2.filter = `blur(${blur * K / 3}px)`;
+    g2.drawImage(c1, 0, 0);
+    g2.filter = 'none';
+    const d2 = g2.getImageData(0, 0, W, W), p2 = d2.data;
+    for (let i = 0; i < p2.length; i += 4) {
+      const o = Math.round(ss(level - edge, level + edge, p2[i] / 255) * 255);
+      p2[i] = p2[i + 1] = p2[i + 2] = o;
+    }
+    g2.putImageData(d2, 0, 0);
+    fin = c2;
+  }
+  const c3 = document.createElement('canvas'); c3.width = c3.height = OUT;
+  const g3 = c3.getContext('2d'); g3.imageSmoothingQuality = 'high';
+  // optional view window (source coords) for zoomed inspection
+  const vx = +(q.get('vx') || 0), vy = +(q.get('vy') || 0), vw = +(q.get('vw') || img.width);
+  g3.drawImage(fin, vx * K, vy * K, vw * K, vw * K, 0, 0, OUT, OUT);
+  document.body.appendChild(c3);
+};
+img.src = SRC;
+</script></body></html>

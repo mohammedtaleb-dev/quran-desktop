@@ -1,0 +1,18 @@
+{
+  "name": "quran-desktop",
+  "private": true,
+  "version": "1.2.0",
+  "description": "القرآن الكريم — مصحف شامي بدون انترنت لويندوز",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri",
+    "pages": "node tools/extract-pages.js source/al-quran-with-allah-name-in-red-color-arabic.pdf src-tauri/pages",
+    "meta": "node tools/build-meta.js",
+    "preview": "node tools/serve.js"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.3",
+    "jpeg-js": "^0.4.4"
+  }
+}
