@@ -19,10 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
---------------------------------------------------------------------------------
-Scope: this license covers the program code written for this project only
-(src/js, src/css, src/index.html, src-tauri/src, the tools/*.js scripts and the
-configuration files). It does NOT cover the mushaf page images, the Quran text,
-the tafsir, the fonts, the tajweed summary or the logo calligraphy. Those belong
-to their owners and are listed with their terms in THIRD-PARTY.md.
